@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+    @apply bg-primary
+}
+
+.GridInventaire {
+      @apply grid gap-12 justify-around grid-cols-[repeat(auto-fill,_15rem)] z-0;
+    }
