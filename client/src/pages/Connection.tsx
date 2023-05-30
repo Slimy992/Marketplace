@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { updateUser } from "src/store";
+import { updateLogged, updateUser } from "src/store";
 
 type UserProps = {
     id: string,
@@ -18,32 +18,82 @@ export const Connection = () => {
     const [name, setName] = React.useState<string>("");
     const [email2, setEmail2] = React.useState<string>("");
     const [password2, setPassword2] = React.useState<string>("");
+    const [data,setData] = React.useState<any | undefined>();
+    const [error,setError] = React.useState<boolean>(false);
+    const [loading,setLoading] = React.useState<boolean>(true);
 
     const dispatch = useDispatch();
+
+    async function ConnnectUser(argToken : string){
+        try {
+            console.log(argToken);
+            const result = await axios.get("https://marche-puces.azurewebsites.net/tokeninfo", {
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': argToken
+                  }
+                })
+            setLoading(false);
+            setData(result.data.data);
+        } catch(error){
+            console.log(error);
+            setLoading(false);
+            setError(true);
+        };
+        console.log(data);
+        dispatch(updateLogged(false));
+        dispatch(updateUser(data));
+    }
 
 
     async function handleLogin(e : any){
         e.preventDefault();
-        const body = { email, password };
-        console.log(body);
-        const response = await axios.post("https://marche-puces.azurewebsites.net/login", body);
-        console.log(response);
-        if (response.status === 200){
-            const result = await axios.get("https://marche-puces.azurewebsites.net/tokeninfo/" + response);
-            dispatch(updateUser(result));
-        }
-        else {
-
+        try {
+            const response = await fetch(
+                "https://marche-puces.azurewebsites.net/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                    }),
+                }
+            );
+    
+            const data = await response.json();
+            console.log(data.token);
+            ConnnectUser(data.token);
+        } catch (error) {
+            console.log(error);
         }
     }
 
     async function handleRegister(e : any){
         e.preventDefault();
-        const body = {name, email2, password2};
-        console.log(body);
-        axios.post("https://marche-puces.azurewebsites.net/signin", body).then(response =>
-        console.log(response)
-        );
+        try {
+            const response = await fetch(
+                "https://marche-puces.azurewebsites.net/signin",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        name : name,
+                        email: email2,
+                        password: password2,
+                    }),
+                }
+            );
+    
+            const data = await response.json();
+            console.log(data);
+        } catch (error) {
+            console.log(error);
+        }
         ;
     }
 
